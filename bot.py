@@ -1,5 +1,5 @@
 import os
-os.system('cmd /c "playwright install"')
+os.system("playwright install")
 import interactions
 from interactions import *
 from interactions.ext import prefixed_commands
