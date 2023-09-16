@@ -3,6 +3,13 @@ start()
 
 import os
 os.system("playwright install")
+# check if playright is installed, if not keep trying to install it
+while True:
+    try:
+        from playwright.sync_api import sync_playwright
+        break
+    except:
+        os.system("playwright install")
 
 import interactions
 from interactions import *
@@ -19,15 +26,12 @@ load_dotenv()
 CAiKey = os.getenv("CAIKEY")
 char = "YntB_ZeqRq2l_aVf2gWDCZl4oBttQzDvhj9cXafWcF8"
 
-stopped = False
-
-
 bot_intents: Intents = Intents.MESSAGE_CONTENT | Intents.GUILD_MEMBERS | Intents.GUILDS | Intents.DIRECT_MESSAGES | Intents.MESSAGES | Intents.GUILD_MESSAGES
 
 bot = Client(send_command_tracebacks=False, intents=bot_intents, prefix="AI=")
 prefixed_commands.setup(bot)
 
-
+stopped = False
 
 @listen()
 async def on_ready():
@@ -64,6 +68,19 @@ async def respond(message, user):
 
 @listen()
 async def on_message_create(ctx):
+    global stopped
+
+    if ctx.message.content == "AI=stop":
+        if ctx.message.author == bot.owner:
+            stopped = True
+            await ctx.reply("AI Answering Halted")
+    elif ctx.message.content == "AI=start":
+        if ctx.message.author == bot.owner:
+            stopped = False
+            await ctx.reply("AI Answering Resumed")
+
+    # await bot.process_commands(ctx)
+
     if ctx.message.author.bot:
         return
     if stopped == False:
@@ -75,20 +92,6 @@ async def on_message_create(ctx):
             await ctx.message.channel.trigger_typing()
             response = await respond(ctx.message.content, ctx.message.author.display_name)
             await ctx.message.channel.send(response)
-
-@prefixed_command(name="stop")
-async def stop(ctx: PrefixedContext):
-    if ctx.message.author == bot.owner:
-        global stopped
-        stopped = True
-        await ctx.reply("AI Answering Halted")
-
-@prefixed_command(name="start")
-async def start(ctx: PrefixedContext):
-    if ctx.message.author == bot.owner:
-        global stopped
-        stopped = False
-        await ctx.reply("AI Answering Resumed")
 
 token = os.environ["TOKEN"]
 bot.start(token)
