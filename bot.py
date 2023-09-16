@@ -16,17 +16,7 @@ char = "YntB_ZeqRq2l_aVf2gWDCZl4oBttQzDvhj9cXafWcF8"
 
 stopped = False
 
-# while True:
-#     Username = input("Username: ")
-#     message = input("You: ")
-#     message = f"{Username}: {message}"
-
-#     data = client.chat.send_message(chat["external_id"], tgt, message)
-
-#     name = data["src_char"]["participant"]["name"]
-#     text = data["replies"][0]["text"]
-
-#     print(f"{name}: {text}")
+from keep_alive import start
 
 
 bot_intents: Intents = Intents.MESSAGE_CONTENT | Intents.GUILD_MEMBERS | Intents.GUILDS | Intents.DIRECT_MESSAGES | Intents.MESSAGES | Intents.GUILD_MESSAGES
@@ -34,6 +24,7 @@ bot_intents: Intents = Intents.MESSAGE_CONTENT | Intents.GUILD_MEMBERS | Intents
 bot = Client(send_command_tracebacks=False, intents=bot_intents, prefix="AI=")
 prefixed_commands.setup(bot)
 
+start()
 
 @listen()
 async def on_ready():
