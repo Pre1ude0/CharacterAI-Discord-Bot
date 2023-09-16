@@ -1,3 +1,5 @@
+import os
+os.system('cmd /c "playwright install"')
 import interactions
 from interactions import *
 from interactions.ext import prefixed_commands
@@ -7,7 +9,6 @@ from characterai import PyCAI
 from characterai import PyAsyncCAI
 import asyncio
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
