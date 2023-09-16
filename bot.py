@@ -1,5 +1,9 @@
+from keep_alive import start
+start()
+
 import os
 os.system("playwright install")
+
 import interactions
 from interactions import *
 from interactions.ext import prefixed_commands
@@ -17,15 +21,13 @@ char = "YntB_ZeqRq2l_aVf2gWDCZl4oBttQzDvhj9cXafWcF8"
 
 stopped = False
 
-from keep_alive import start
-
 
 bot_intents: Intents = Intents.MESSAGE_CONTENT | Intents.GUILD_MEMBERS | Intents.GUILDS | Intents.DIRECT_MESSAGES | Intents.MESSAGES | Intents.GUILD_MESSAGES
 
 bot = Client(send_command_tracebacks=False, intents=bot_intents, prefix="AI=")
 prefixed_commands.setup(bot)
 
-start()
+
 
 @listen()
 async def on_ready():
