@@ -33,6 +33,10 @@ prefixed_commands.setup(bot)
 
 stopped = False
 
+messages = []
+
+requests = {}
+
 @listen()
 async def on_ready():
     global client
@@ -44,6 +48,19 @@ async def on_ready():
     await client.start()
     chat = await client.chat.get_chat(char)
     print(f"{bot.user} has logged in!")
+    while True:
+        if messages != []:
+            await compose_answer(messages[0])
+            messages.remove(messages[0])
+        else:
+            await asyncio.sleep(1)
+        
+        if requests != {}:
+            for key in requests:
+                if requests.get(key)["limit"] == True:
+                    await asyncio.sleep(5)
+                    requests[key]["limit"] = False
+
 
 
 async def respond(message, user):
@@ -65,33 +82,81 @@ async def respond(message, user):
 
     return text
 
+async def compose_answer(message):
+    await message.channel.trigger_typing()
+    response = await respond(message.content, message.author.display_name)
+    await message.reply(response)
+
+def calc_request(user):
+    if requests.get(user.id) == None:
+        requests[user.id] = { "messages":1 , "limit":True }
+        return True
+    else:
+        if requests[user.id]["limit"] == False:
+            if requests[user.id]["messages"] >= 5:
+                return False
+            else:
+                requests[user.id]["messages"] += 1
+                requests[user.id]["limit"] = True
+                return True
+        elif requests[user.id]["limit"] == True:
+            return False
+
+    
 
 @listen()
 async def on_message_create(ctx):
     global stopped
+    global messages
 
-    if ctx.message.content == "AI=stop":
+    if ctx.message.content == "<@1039221480157884496> halt":
         if ctx.message.author == bot.owner:
             stopped = True
-            await ctx.reply("AI Answering Halted")
-    elif ctx.message.content == "AI=start":
-        if ctx.message.author == bot.owner:
-            stopped = False
-            await ctx.reply("AI Answering Resumed")
-
-    # await bot.process_commands(ctx)
+            await ctx.message.reply("AI Answering Halted")
 
     if ctx.message.author.bot:
         return
     if stopped == False:
         if ctx.message.channel.id == 1071105901299241091:
-            await ctx.message.channel.trigger_typing()
-            response = await respond(ctx.message.content, ctx.message.author.display_name)
-            await ctx.message.channel.send(response)
+            if calc_request(ctx.message.author):
+                messages.append(ctx.message)
+                if requests.get(ctx.message.author.id)["messages"] == 1:
+                    await asyncio.sleep(60)
+                    requests.pop(ctx.message.author.id)
+    
+            elif requests.get(ctx.message.author.id)["limit"]:
+                msg = await ctx.message.reply("You are sending too many messages, please wait a little before sending another one")
+                await asyncio.sleep(5)
+                await msg.delete()
+
+            else:
+                msg = await ctx.message.reply("You are sending too many messages, please wait a minute before sending another one.")
+                await asyncio.sleep(5)
+                await msg.delete()
+
         elif ctx.message.channel.type == ChannelType.DM:
-            await ctx.message.channel.trigger_typing()
-            response = await respond(ctx.message.content, ctx.message.author.display_name)
-            await ctx.message.channel.send(response)
+            if calc_request(ctx.message.author):
+                messages.append(ctx.message)
+                if requests.get(ctx.message.author.id)["messages"] == 1:
+                    await asyncio.sleep(60)
+                    requests.pop(ctx.message.author.id)
+    
+            elif requests.get(ctx.message.author.id)["limit"]:
+                msg = await ctx.message.reply("You are sending too many messages, please wait a little before sending another one")
+                await asyncio.sleep(5)
+                await msg.delete()
+
+            else:
+                msg = await ctx.message.reply("You are sending too many messages, please wait a minute before sending another one.")
+                await asyncio.sleep(5)
+                await msg.delete()
+
+    if ctx.message.content == "<@1039221480157884496> resume":
+        if ctx.message.author == bot.owner:
+            stopped = False
+            await ctx.message.reply("AI Answering Resumed")
+
+    # await bot.process_commands(ctx)
 
 token = os.environ["TOKEN"]
 bot.start(token)
