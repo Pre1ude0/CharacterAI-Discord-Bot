@@ -16,8 +16,9 @@ from interactions import *
 from interactions.ext import prefixed_commands
 from interactions.ext.prefixed_commands import prefixed_command, PrefixedContext
 
-from characterai import PyCAI
 from characterai import PyAsyncCAI
+import characterai
+
 import asyncio
 from dotenv import load_dotenv
 
@@ -74,8 +75,12 @@ async def respond(message, user):
     message = f"{user}: {message}"
 
     print(message)
+    try:
+        data = await client.chat.send_message(chat["external_id"], tgt, message)
+    except characterai.FilterError:
+        return "NSFW Content Detected, please try again with a different message!"
 
-    data = await client.chat.send_message(chat["external_id"], tgt, message)
+
 
     # name = data["src_char"]["participant"]["name"]
     text = data["replies"][0]["text"]
